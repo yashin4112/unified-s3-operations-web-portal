@@ -1,40 +1,42 @@
 import React, { useState, useEffect } from 'react';
 import Swal from 'sweetalert2';
-import axios from 'axios'; // Import axios for making HTTP requests
 
 import Header from './Header';
 import Table from './Table';
 import Add from './Add';
 import Edit from './Edit';
 
+import { employeesData } from '../../data';
+import axios from 'axios';
+
 const Dashboard = ({ setIsAuthenticated }) => {
-  const [buckets, setBuckets] = useState([]); // Initialize buckets state with an empty array
-  const [selectedBucket, setSelectedBucket] = useState(null);
+  const [employees, setEmployees] = useState([]);
+
+  const [selectedEmployee, setSelectedEmployee] = useState(null);
   const [isAdding, setIsAdding] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
 
   useEffect(() => {
-    // Fetch buckets data from MongoDB when component mounts
-    const fetchData = async () => {
-      try {
-        const response = await axios.get('/api/buckets'); // Replace with your backend API endpoint
-        setBuckets(response.data); // Set buckets state with the fetched data
-      } catch (error) {
-        console.error('Error fetching buckets:', error);
-        // Handle error (e.g., show error message)
-      }
-    };
-
-    fetchData(); // Call fetchData function
+    // const data = JSON.parse(localStorage.getItem('employees_data'));
+    // if (data !== null && Object.keys(data).length !== 0) setEmployees(data);
+    axios.get('http://localhost:4001/employeedata').then((response) => {
+      console.log(response.data);
+      setEmployees(response.data);
+    }).then(function (response) {
+      // console.log(response);
+    }).catch(function (error) {
+      console.log(error);
+    });
   }, []);
 
-  const handleEdit = (id) => {
-    const bucket = buckets.find((bucket) => bucket.id === id);
-    setSelectedBucket(bucket);
+  const handleEdit = id => {
+    const [employee] = employees.filter(employee => employee.id === id);
+
+    setSelectedEmployee(employee);
     setIsEditing(true);
   };
 
-  const handleDelete = (id) => {
+  const handleDelete = id => {
     Swal.fire({
       icon: 'warning',
       title: 'Are you sure?',
@@ -42,23 +44,21 @@ const Dashboard = ({ setIsAuthenticated }) => {
       showCancelButton: true,
       confirmButtonText: 'Yes, delete it!',
       cancelButtonText: 'No, cancel!',
-    }).then(async (result) => {
+    }).then(result => {
       if (result.value) {
-        try {
-          await axios.delete(`/api/buckets/${id}`); // Replace with your backend API endpoint
-          const updatedBuckets = buckets.filter((bucket) => bucket.id !== id);
-          setBuckets(updatedBuckets);
-          Swal.fire({
-            icon: 'success',
-            title: 'Deleted!',
-            text: `Bucket has been deleted.`,
-            showConfirmButton: false,
-            timer: 1500,
-          });
-        } catch (error) {
-          console.error('Error deleting bucket:', error);
-          // Handle error (e.g., show error message)
-        }
+        const [employee] = employees.filter(employee => employee.id === id);
+
+        Swal.fire({
+          icon: 'success',
+          title: 'Deleted!',
+          text: `${employee.firstName} ${employee.lastName}'s data has been deleted.`,
+          showConfirmButton: false,
+          timer: 1500,
+        });
+
+        const employeesCopy = employees.filter(employee => employee.id !== id);
+        localStorage.setItem('employees_data', JSON.stringify(employeesCopy));
+        setEmployees(employeesCopy);
       }
     });
   };
@@ -72,7 +72,7 @@ const Dashboard = ({ setIsAuthenticated }) => {
             setIsAuthenticated={setIsAuthenticated}
           />
           <Table
-            buckets={buckets}
+            employees={employees}
             handleEdit={handleEdit}
             handleDelete={handleDelete}
           />
@@ -80,14 +80,16 @@ const Dashboard = ({ setIsAuthenticated }) => {
       )}
       {isAdding && (
         <Add
-          setBuckets={setBuckets}
+          employees={employees}
+          setEmployees={setEmployees}
           setIsAdding={setIsAdding}
         />
       )}
       {isEditing && (
         <Edit
-          selectedBucket={selectedBucket}
-          setBuckets={setBuckets}
+          employees={employees}
+          selectedEmployee={selectedEmployee}
+          setEmployees={setEmployees}
           setIsEditing={setIsEditing}
         />
       )}

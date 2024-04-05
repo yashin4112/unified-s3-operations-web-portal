@@ -50,3 +50,14 @@ app.post("/register", async (req, res) => {
         console.log(error);
     }   
 });
+
+app.get("/employeedata", async (req, res) => {
+    try{
+        const employees = await User.find({});
+        res.status(200).json(employees);
+    } 
+    catch (error) {
+        console.log(error);
+    }   
+}); 
+

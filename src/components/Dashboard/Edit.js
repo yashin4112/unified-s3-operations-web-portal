@@ -1,18 +1,19 @@
 import React, { useState } from 'react';
 import Swal from 'sweetalert2';
-import axios from 'axios';
 
-const Edit = ({ buckets, selectedBucket, setBuckets, setIsEditing }) => {
-  const { id } = selectedBucket;
+const Edit = ({ employees, selectedEmployee, setEmployees, setIsEditing }) => {
+  const id = selectedEmployee.id;
 
-  const [bucketName, setBucketName] = useState(selectedBucket.bucketName);
-  const [region, setRegion] = useState(selectedBucket.region);
-  const [date, setDate] = useState(selectedBucket.date);
+  const [firstName, setFirstName] = useState(selectedEmployee.firstName);
+  const [lastName, setLastName] = useState(selectedEmployee.lastName);
+  const [email, setEmail] = useState(selectedEmployee.email);
+  const [salary, setSalary] = useState(selectedEmployee.salary);
+  const [date, setDate] = useState(selectedEmployee.date);
 
-  const handleUpdate = async (e) => {
+  const handleUpdate = e => {
     e.preventDefault();
 
-    if (!bucketName || !region || !date) {
+    if (!firstName || !lastName || !email || !salary || !date) {
       return Swal.fire({
         icon: 'error',
         title: 'Error!',
@@ -21,80 +22,78 @@ const Edit = ({ buckets, selectedBucket, setBuckets, setIsEditing }) => {
       });
     }
 
-    const updatedBucket = {
+    const employee = {
       id,
-      bucketName,
-      region,
+      firstName,
+      lastName,
+      email,
+      salary,
       date,
     };
 
-    try {
-      // Send a request to update the bucket details
-      const response = await axios.put(`/api/buckets/${id}`, updatedBucket);
-
-      // Check if update was successful
-      if (response.data.success) {
-        const updatedBuckets = buckets.map((bucket) =>
-          bucket.id === id ? updatedBucket : bucket
-        );
-
-        localStorage.setItem('buckets_data', JSON.stringify(updatedBuckets));
-        setBuckets(updatedBuckets);
-        setIsEditing(false);
-
-        Swal.fire({
-          icon: 'success',
-          title: 'Updated!',
-          text: `Bucket "${updatedBucket.bucketName}" has been updated.`,
-          showConfirmButton: false,
-          timer: 1500,
-        });
-      } else {
-        Swal.fire({
-          icon: 'error',
-          title: 'Error!',
-          text: 'Failed to update bucket. Please try again later.',
-          showConfirmButton: true,
-        });
+    for (let i = 0; i < employees.length; i++) {
+      if (employees[i].id === id) {
+        employees.splice(i, 1, employee);
+        break;
       }
-    } catch (error) {
-      console.error('Update failed:', error);
-      Swal.fire({
-        icon: 'error',
-        title: 'Error!',
-        text: 'Failed to update bucket. Please try again later.',
-        showConfirmButton: true,
-      });
     }
+
+    localStorage.setItem('employees_data', JSON.stringify(employees));
+    setEmployees(employees);
+    setIsEditing(false);
+
+    Swal.fire({
+      icon: 'success',
+      title: 'Updated!',
+      text: `${employee.firstName} ${employee.lastName}'s data has been updated.`,
+      showConfirmButton: false,
+      timer: 1500,
+    });
   };
 
   return (
     <div className="small-container">
       <form onSubmit={handleUpdate}>
         <h1>Edit Bucket</h1>
-        <label htmlFor="bucketName">Bucket Name</label>
+        <label htmlFor="firstName">Bucket Name</label>
         <input
-          id="bucketName"
+          id="firstName"
           type="text"
-          name="bucketName"
-          value={bucketName}
-          onChange={(e) => setBucketName(e.target.value)}
+          name="firstName"
+          value={firstName}
+          onChange={e => setFirstName(e.target.value)}
         />
-        <label htmlFor="region">Region</label>
+        <label htmlFor="lastName">Type</label>
         <input
-          id="region"
+          id="lastName"
           type="text"
-          name="region"
-          value={region}
-          onChange={(e) => setRegion(e.target.value)}
+          name="lastName"
+          value={lastName}
+          onChange={e => setLastName(e.target.value)}
         />
+        {/* <label htmlFor="email">Email</label>
+        <input
+          id="email"
+          type="email"
+          name="email"
+          value={email}
+          onChange={e => setEmail(e.target.value)}
+        /> */}
+        {/* <label htmlFor="salary">Salary ($)</label>
+        <input
+          id="salary"
+          type="number"
+          name="salary"
+          value={salary}
+          onChange={e => setSalary(e.target.value)}
+        /> */}
         <label htmlFor="date">Date</label>
         <input
           id="date"
           type="date"
           name="date"
           value={date}
-          onChange={(e) => setDate(e.target.value)}
+          onChange={e => setDate(e.target.value)}
         />
         <div style={{ marginTop: '30px' }}>
           <input type="submit" value="Update" />

@@ -1,46 +1,50 @@
 import React, { useState } from 'react';
 import Swal from 'sweetalert2';
-import axios from 'axios';
 
 const Login = ({ setIsAuthenticated }) => {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+  const adminEmail = 'admin@example.com';
+  const adminPassword = 'qwerty';
 
-  const handleLogin = async (e) => {
+  const [email, setEmail] = useState('admin@example.com');
+  const [password, setPassword] = useState('qwerty');
+
+  const handleLogin = e => {
     e.preventDefault();
 
-    try {
-      // Send a request to your backend API to authenticate the user
-      const response = await axios.post('/api/auth/login', {
-        email,
-        password,
-      });
-
-      // Check if authentication was successful
-      if (response.data.success) {
-        localStorage.setItem('is_authenticated', true);
-        setIsAuthenticated(true);
-        Swal.fire({
-          icon: 'success',
-          title: 'Successfully logged in!',
-          showConfirmButton: false,
-          timer: 1500,
-        });
-      } else {
-        Swal.fire({
-          icon: 'error',
-          title: 'Error!',
-          text: 'Incorrect email or password.',
-          showConfirmButton: true,
-        });
-      }
-    } catch (error) {
-      console.error('Login failed:', error);
+    if (email === adminEmail && password === adminPassword) {
       Swal.fire({
-        icon: 'error',
-        title: 'Error!',
-        text: 'Login failed. Please try again later.',
-        showConfirmButton: true,
+        timer: 1500,
+        showConfirmButton: false,
+        willOpen: () => {
+          Swal.showLoading();
+        },
+        willClose: () => {
+          localStorage.setItem('is_authenticated', true);
+          setIsAuthenticated(true);
+
+          Swal.fire({
+            icon: 'success',
+            title: 'Successfully logged in!',
+            showConfirmButton: false,
+            timer: 1500,
+          });
+        },
+      });
+    } else {
+      Swal.fire({
+        timer: 1500,
+        showConfirmButton: false,
+        willOpen: () => {
+          Swal.showLoading();
+        },
+        willClose: () => {
+          Swal.fire({
+            icon: 'error',
+            title: 'Error!',
+            text: 'Incorrect email or password.',
+            showConfirmButton: true,
+          });
+        },
       });
     }
   };
@@ -54,20 +58,18 @@ const Login = ({ setIsAuthenticated }) => {
           id="email"
           type="email"
           name="email"
-          placeholder="Enter your email"
+          placeholder="admin@example.com"
           value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          required
+          onChange={e => setEmail(e.target.value)}
         />
         <label htmlFor="password">Password</label>
         <input
           id="password"
           type="password"
           name="password"
-          placeholder="Enter your password"
+          placeholder="qwerty"
           value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          required
+          onChange={e => setPassword(e.target.value)}
         />
         <input style={{ marginTop: '12px' }} type="submit" value="Login" />
       </form>
